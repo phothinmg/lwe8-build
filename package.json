@@ -6,8 +6,8 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./index.js",
-      "require": "./index.cjs"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "scripts": {
@@ -15,7 +15,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
     "@types/node": "^22.13.1",
     "@types/uglify-js": "^3.17.5",
