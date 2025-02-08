@@ -51,6 +51,7 @@ type CompileOptions = {
   >;
 };
 //---------------------------------------
+const gray = (d: string) => `\x1b[0;38;5;0m${d}\x1b[0m`;
 export const cleanDir = async function (dir: string) {
   const files = await readdir(dir);
   await Promise.all(files.map((file) => unlink(join(dir, file))));
@@ -240,7 +241,10 @@ export const build = async function ({
       await createBwDir();
     }
   };
+  // ------------------------------------------
+  const start = performance.now();
   // --------------------------------------------
+  $.logStep("Build Process Started .... ");
   const tempOutFilePath = `${tempdir}/${fileName}`;
   await mergeFiles({
     outFilePath: tempOutFilePath,
@@ -248,11 +252,13 @@ export const build = async function ({
     otherFiles,
   });
   await $.sleep(500);
+  $.logStep("Creating Temp Dirs .... ");
   await createTemps();
   await $.sleep(500);
   await createOutDir();
   await $.sleep(1000);
   if (format.includes("esm")) {
+    $.logStep("Compiling for ESM  .... ");
     await (async function () {
       await compile({
         fileNames: [tempOutFilePath],
@@ -280,6 +286,7 @@ export const build = async function ({
   }
   await $.sleep(1000);
   if (format.includes("cjs")) {
+    $.logStep("Compiling for CJS  .... ");
     await (async function () {
       await compile({
         fileNames: [tempOutFilePath],
@@ -306,6 +313,7 @@ export const build = async function ({
   }
   await $.sleep(1000);
   if (format.includes("browser")) {
+    $.logStep("Compiling for Browser  .... ");
     await (async function () {
       await compile({
         fileNames: [tempOutFilePath],
@@ -331,8 +339,11 @@ export const build = async function ({
       }
     })();
   }
+  $.logStep("Removing Temp Directory");
   await $.sleep(3000);
   await $`rm -r ${tempdir}`;
+  const end = performance.now();
+  $.logStep(`Done in ... ${end - start} ms`);
 };
 
 export { minify };
