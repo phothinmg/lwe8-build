@@ -46,7 +46,7 @@ if (fs.existsSync(out)) {
       mapFiles[`${outName}.map`] = mini.map;
     }
   };
-  const program = ts.createProgram(["./index.ts"], options, host);
+  const program = ts.createProgram(["./src/index.ts"], options, host);
   program.emit();
   Object.entries(createdFiles).map(([outName, contents]) =>
     fs.writeFileSync(outName, contents)
@@ -92,7 +92,7 @@ if (fs.existsSync(out)) {
       mapFiles[`${outName}.map`] = mini.map;
     }
   };
-  const program = ts.createProgram(["./index.ts"], options, host);
+  const program = ts.createProgram(["./src/index.ts"], options, host);
   program.emit();
   Object.entries(createdFiles).map(([outName, contents]) =>
     fs.writeFileSync(outName, contents)
