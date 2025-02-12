@@ -48,9 +48,15 @@ if (fs.existsSync(out)) {
   };
   const program = ts.createProgram(["./src/index.ts"], options, host);
   program.emit();
-  Object.entries(createdFiles).map(([outName, contents]) =>
-    fs.writeFileSync(outName, contents)
-  );
+  Object.entries(createdFiles).map(([outName, contents]) => {
+    const ext = path.extname(outName);
+    const _mapc = ext === ".ts" ? "" : `//# sourceMappingURL=${outName}.map`;
+    const txt = `
+    ${contents}
+    ${_mapc}
+   `;
+    fs.writeFileSync(outName, txt.trim());
+  });
   Object.entries(mapFiles).map(([outName, contents]) =>
     fs.writeFileSync(outName, contents)
   );
@@ -94,9 +100,15 @@ if (fs.existsSync(out)) {
   };
   const program = ts.createProgram(["./src/index.ts"], options, host);
   program.emit();
-  Object.entries(createdFiles).map(([outName, contents]) =>
-    fs.writeFileSync(outName, contents)
-  );
+  Object.entries(createdFiles).map(([outName, contents]) => {
+    const ext = path.extname(outName);
+    const _mapc = ext === ".ts" ? "" : `//# sourceMappingURL=${outName}.map`;
+    const txt = `
+    ${contents}
+    ${_mapc}
+   `;
+    fs.writeFileSync(outName, txt.trim());
+  });
   Object.entries(mapFiles).map(([outName, contents]) =>
     fs.writeFileSync(outName, contents)
   );

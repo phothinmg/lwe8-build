@@ -11,20 +11,23 @@
     }
   },
   "scripts": {
+    "check": "biome check --write src && biome format --write src",
     "build": "node build.js"
   },
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.13.1",
     "@types/uglify-js": "^3.17.5",
     "dax-sh": "^0.42.0",
     "typescript": "^5.7.3",
     "uglify-js": "^3.19.3"
   },
-  "devDependencies": {
-    "@babel/parser": "^7.26.8",
-    "@babel/types": "^7.26.8"
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@biomejs/biome"
+    ]
   }
 }
