@@ -41,9 +41,10 @@ export type BuildOptions = {
 };
 export type CompileOptions = {
 	fileNames: string[];
-	outDir: string;
-	declareDir: string;
 	format: Format;
+	outDir: string;
+	declaration?: boolean;
+	declareDir?: string;
 	replaceFunction?: (fileName: string) => string;
 	complierOptions?: Omit<
 		ts.CompilerOptions,
@@ -162,6 +163,7 @@ function extensionReplaceCjs(fileName: string): string {
 const compile = async ({
 	fileNames,
 	outDir,
+	declaration,
 	declareDir,
 	format,
 	replaceFunction,
@@ -179,7 +181,7 @@ const compile = async ({
 	const options: ts.CompilerOptions = {
 		allowJs: true,
 		module: moduleType,
-		declaration: true,
+		declaration: declaration ?? true,
 		outDir: outDir,
 		declarationDir: declareDir,
 		...complierOptions,
@@ -234,81 +236,15 @@ const build = async ({
 			await mkdir(bwtempDir, { recursive: true });
 		}
 	};
-	// -------------------------------------
-	const isE = format.includes("esm");
-	const isC = format.includes("cjs");
-	const isB = format.includes("browser");
-	const isAll =
-		format.includes("esm") &&
-		format.includes("cjs") &&
-		format.includes("browser") &&
-		outputDirs.esm === outputDirs.cjs &&
-		outputDirs.esm === outputDirs.browser;
-	const isEC =
-		format.includes("esm") &&
-		format.includes("cjs") &&
-		outputDirs.esm === outputDirs.cjs;
-	const isEB =
-		format.includes("esm") &&
-		format.includes("browser") &&
-		outputDirs.esm === outputDirs.browser;
-	const isCB =
-		format.includes("cjs") &&
-		format.includes("browser") &&
-		!format.includes("esm") &&
-		outputDirs.cjs === outputDirs.browser;
-	const isEsm = isAll || isEC || isEB || (!isCB && isE);
-	const isCjs = isCB || (!isE && !isB && isC);
-	/**
-	 * If the esm output directory exists, clean it.
-	 * Otherwise, create it.
-	 * @returns {Promise<void>}
-	 */
-	const createEsmDir = async (): Promise<void> => {
-		if (existsSync(outputDirs.esm)) {
-			cleanDir(outputDirs.esm);
-		} else {
-			await mkdir(outputDirs.esm, { recursive: true });
-		}
-	};
-	/**
-	 * If the cjs output directory exists, clean it.
-	 * Otherwise, create it.
-	 * @returns {Promise<void>}
-	 */
-	const createCjsDir = async (): Promise<void> => {
-		if (existsSync(outputDirs.cjs)) {
-			cleanDir(outputDirs.cjs);
-		} else {
-			await mkdir(outputDirs.cjs, { recursive: true });
-		}
-	};
-	/**
-	 * Ensures the browser output directory exists.
-	 * If the directory exists, it cleans the directory by removing all files.
-	 * If the directory doesn't exist, it creates a new directory.
-	 * @returns {Promise<void>}
-	 */
-	const createBwDir = async (): Promise<void> => {
-		if (existsSync(outputDirs.browser as string)) {
-			cleanDir(outputDirs.browser as string);
-		} else {
-			await mkdir(outputDirs.browser as string, { recursive: true });
-		}
-	};
 
-	/**
-	 * Creates the output directory if it doesn't exist, and cleans it if it does.
-	 * It chooses the correct output directory based on the given format.
-	 * @returns {Promise<void>} A promise that resolves when the output directory is created/cleaned.
-	 */
-	const createOutDir = async (): Promise<void> => {
-		if (isEsm) {
-			await createEsmDir();
-		} else if (isCjs) {
-			await createCjsDir();
-		} else {
-			await createBwDir();
+	const createDirs = async (format: Format) => {
+		const dir = outputDirs[format];
+		if (dir) {
+			if (existsSync(dir)) {
+				cleanDir(dir);
+			} else {
+				await mkdir(dir, { recursive: true });
+			}
 		}
 	};
 	// ------------------------------------------
@@ -324,12 +260,11 @@ const build = async ({
 	await $.sleep(500);
 	$.logStep("Creating Temp Dirs .... ");
 	await createTemps();
-	await $.sleep(500);
-	await createOutDir();
 	await $.sleep(1000);
 	if (format.includes("esm")) {
 		$.logStep("Compiling for ESM  .... ");
 		await (async () => {
+			await createDirs("esm");
 			await compile({
 				fileNames: [tempOutFilePath],
 				format: "esm",
@@ -358,10 +293,11 @@ const build = async ({
 	if (format.includes("cjs")) {
 		$.logStep("Compiling for CJS  .... ");
 		await (async () => {
+			await createDirs("cjs");
 			await compile({
 				fileNames: [tempOutFilePath],
 				format: "cjs",
-				declareDir: outputDirs.esm,
+				declareDir: outputDirs.cjs,
 				outDir: cjstempDir,
 				replaceFunction: extensionReplaceCjs,
 			});
@@ -385,11 +321,12 @@ const build = async ({
 	if (format.includes("browser")) {
 		$.logStep("Compiling for Browser  .... ");
 		await (async () => {
+			await createDirs("browser");
 			await compile({
 				fileNames: [tempOutFilePath],
 				format: "browser",
-				declareDir: outputDirs.esm,
 				outDir: bwtempDir,
+				declaration: false,
 			});
 			const fname = await readdir(bwtempDir);
 			const code = await readFile(`${bwtempDir}/${fname}`, "utf8");
