@@ -1,11 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import {
-  mkdir,
-  mkdtemp,
-  readFile,
-  readdir,
-  unlink,
-  writeFile,
+	mkdir,
+	mkdtemp,
+	readFile,
+	readdir,
+	unlink,
+	writeFile,
 } from "node:fs/promises";
 import { dirname, extname, join } from "node:path";
 import $ from "dax-sh";
@@ -13,43 +13,43 @@ import ts from "typescript";
 import { minify } from "uglify-js";
 // -----------------------------------------------------
 type IndexFile = {
-  path: string;
-  lines?: number;
+	path: string;
+	lines?: number;
 };
 
 type OtherFile = {
-  path: string;
-  lines?: number;
-  removeExport?: boolean;
+	path: string;
+	lines?: number;
+	removeExport?: boolean;
 };
 type MergeFilesOptions = {
-  outFilePath: string;
-  indexFile: IndexFile;
-  otherFiles?: OtherFile[];
+	outFilePath: string;
+	indexFile: IndexFile;
+	otherFiles?: OtherFile[];
 };
 export type Format = "esm" | "cjs" | "browser";
 export type BuildOptions = {
-  format: Format[];
-  outputDirs: {
-    esm: string;
-    cjs: string;
-    browser?: string;
-  };
-  indexFile: IndexFile;
-  otherFiles?: OtherFile[];
-  fileName?: string;
+	format: Format[];
+	outputDirs?: {
+		esm?: string;
+		cjs?: string;
+		browser?: string;
+	};
+	indexFile: IndexFile;
+	otherFiles?: OtherFile[];
+	fileName?: string;
 };
 export type CompileOptions = {
-  fileNames: string[];
-  format: Format;
-  outDir: string;
-  declaration?: boolean;
-  declareDir?: string;
-  replaceFunction?: (fileName: string) => string;
-  complierOptions?: Omit<
-    ts.CompilerOptions,
-    "module" | "outDir" | "declaration" | "declarationDir" | "allowJs"
-  >;
+	fileNames: string[];
+	format: Format;
+	outDir: string;
+	declaration?: boolean;
+	declareDir?: string;
+	replaceFunction?: (fileName: string) => string;
+	complierOptions?: Omit<
+		ts.CompilerOptions,
+		"module" | "outDir" | "declaration" | "declarationDir" | "allowJs"
+	>;
 };
 //---------------------------------------
 //const gray = (d: string) => `\x1b[0;38;5;0m${d}\x1b[0m`;
@@ -59,8 +59,8 @@ export type CompileOptions = {
  * @param dir The directory to clean.
  */
 const cleanDir = async (dir: string) => {
-  const files = await readdir(dir);
-  await Promise.all(files.map((file) => unlink(join(dir, file))));
+	const files = await readdir(dir);
+	await Promise.all(files.map((file) => unlink(join(dir, file))));
 };
 
 /**
@@ -71,39 +71,39 @@ const cleanDir = async (dir: string) => {
  * @returns A promise that resolves when the merge is complete.
  */
 const mergeFiles = async ({
-  outFilePath,
-  indexFile,
-  otherFiles,
+	outFilePath,
+	indexFile,
+	otherFiles,
 }: MergeFilesOptions) => {
-  const pn = dirname(outFilePath);
-  if (!existsSync(pn)) await mkdir(pn);
-  const index_code = await readFile(indexFile.path, "utf8");
-  const _indexCode = indexFile.lines
-    ? index_code.split("\n").slice(indexFile.lines).join("\n")
-    : index_code;
-  let _otherCode: string;
-  if (otherFiles) {
-    const other_codes: string[] = [];
-    for (const file of otherFiles) {
-      const re = file.removeExport ?? false;
-      const file_code = await readFile(file.path, "utf8");
-      const removedLines = file.lines
-        ? file_code.split("\n").slice(file.lines).join("\n")
-        : file_code;
-      const _removedexport = removedLines.replace(/export\s+/g, "").split("\n");
-      const removedExport = re ? _removedexport.join("\n") : removedLines;
-      other_codes.push(removedExport);
-    }
-    _otherCode = other_codes.join("\n");
-  } else {
-    _otherCode = "";
-  }
-  const txt = `
+	const pn = dirname(outFilePath);
+	if (!existsSync(pn)) await mkdir(pn);
+	const index_code = await readFile(indexFile.path, "utf8");
+	const _indexCode = indexFile.lines
+		? index_code.split("\n").slice(indexFile.lines).join("\n")
+		: index_code;
+	let _otherCode: string;
+	if (otherFiles) {
+		const other_codes: string[] = [];
+		for (const file of otherFiles) {
+			const re = file.removeExport ?? false;
+			const file_code = await readFile(file.path, "utf8");
+			const removedLines = file.lines
+				? file_code.split("\n").slice(file.lines).join("\n")
+				: file_code;
+			const _removedexport = removedLines.replace(/export\s+/g, "").split("\n");
+			const removedExport = re ? _removedexport.join("\n") : removedLines;
+			other_codes.push(removedExport);
+		}
+		_otherCode = other_codes.join("\n");
+	} else {
+		_otherCode = "";
+	}
+	const txt = `
         ${_otherCode}
         ${_indexCode}
         `;
 
-  await writeFile(outFilePath, txt.trim());
+	await writeFile(outFilePath, txt.trim());
 };
 
 /**
@@ -111,10 +111,10 @@ const mergeFiles = async ({
  * @returns "commonjs" if the type field is not present or is "commonjs", otherwise "module".
  */
 const getType = () => {
-  const packageJsonFile = join(process.cwd(), "package.json");
-  const packageData = readFileSync(packageJsonFile, "utf8");
-  const data = JSON.parse(packageData);
-  return !data.type || data.type === "commonjs" ? "commonjs" : "module";
+	const packageJsonFile = join(process.cwd(), "package.json");
+	const packageData = readFileSync(packageJsonFile, "utf8");
+	const data = JSON.parse(packageData);
+	return !data.type || data.type === "commonjs" ? "commonjs" : "module";
 };
 
 /**
@@ -124,13 +124,13 @@ const getType = () => {
  * @returns {string} The replaced file name.
  */
 function extensionReplaceEsm(fileName: string): string {
-  const type = getType();
-  if (type === "commonjs") {
-    const ext = extname(fileName);
-    if (ext === ".ts") return `${fileName.slice(0, -3)}.mts`;
-    if (ext === ".js") return `${fileName.slice(0, -3)}.mjs`;
-  }
-  return fileName;
+	const type = getType();
+	if (type === "commonjs") {
+		const ext = extname(fileName);
+		if (ext === ".ts") return `${fileName.slice(0, -3)}.mts`;
+		if (ext === ".js") return `${fileName.slice(0, -3)}.mjs`;
+	}
+	return fileName;
 }
 
 /**
@@ -140,13 +140,13 @@ function extensionReplaceEsm(fileName: string): string {
  * @returns {string} The replaced file name.
  */
 function extensionReplaceCjs(fileName: string): string {
-  const type = getType();
-  if (type === "module") {
-    const ext = extname(fileName);
-    if (ext === ".ts") return `${fileName.slice(0, -3)}.cts`;
-    if (ext === ".js") return `${fileName.slice(0, -3)}.cjs`;
-  }
-  return fileName;
+	const type = getType();
+	if (type === "module") {
+		const ext = extname(fileName);
+		if (ext === ".ts") return `${fileName.slice(0, -3)}.cts`;
+		if (ext === ".js") return `${fileName.slice(0, -3)}.cjs`;
+	}
+	return fileName;
 }
 
 /**
@@ -161,46 +161,46 @@ function extensionReplaceCjs(fileName: string): string {
  * @returns {Promise<void>} A promise that resolves when the compilation is complete.
  */
 const compile = async ({
-  fileNames,
-  outDir,
-  declaration,
-  declareDir,
-  format,
-  replaceFunction,
-  complierOptions,
+	fileNames,
+	outDir,
+	declaration,
+	declareDir,
+	format,
+	replaceFunction,
+	complierOptions,
 }: CompileOptions): Promise<void> => {
-  let moduleType: ts.ModuleKind = ts.ModuleKind.ES2015;
-  if (format === "esm") {
-    moduleType = ts.ModuleKind.ESNext;
-  } else if (format === "cjs") {
-    moduleType = ts.ModuleKind.CommonJS;
-  } else if (format === "browser") {
-    moduleType = ts.ModuleKind.ES2015;
-  }
+	let moduleType: ts.ModuleKind = ts.ModuleKind.ES2015;
+	if (format === "esm") {
+		moduleType = ts.ModuleKind.ESNext;
+	} else if (format === "cjs") {
+		moduleType = ts.ModuleKind.CommonJS;
+	} else if (format === "browser") {
+		moduleType = ts.ModuleKind.ES2015;
+	}
 
-  const options: ts.CompilerOptions = {
-    allowJs: true,
-    module: moduleType,
-    declaration: declaration ?? true,
-    outDir: outDir,
-    declarationDir: declareDir,
-    ...complierOptions,
-  };
+	const options: ts.CompilerOptions = {
+		allowJs: true,
+		module: moduleType,
+		declaration: declaration ?? true,
+		outDir: outDir,
+		declarationDir: declareDir,
+		...complierOptions,
+	};
 
-  const createdFiles: Record<string, string> = {};
-  const host = ts.createCompilerHost(options);
+	const createdFiles: Record<string, string> = {};
+	const host = ts.createCompilerHost(options);
 
-  host.writeFile = (fileName: string, contents: string) => {
-    const outName = replaceFunction ? replaceFunction(fileName) : fileName;
-    createdFiles[outName] = contents;
-  };
-  const program = ts.createProgram(fileNames, options, host);
-  program.emit();
-  await Promise.all(
-    Object.entries(createdFiles).map(([outName, contents]) =>
-      writeFile(outName, contents)
-    )
-  );
+	host.writeFile = (fileName: string, contents: string) => {
+		const outName = replaceFunction ? replaceFunction(fileName) : fileName;
+		createdFiles[outName] = contents;
+	};
+	const program = ts.createProgram(fileNames, options, host);
+	program.emit();
+	await Promise.all(
+		Object.entries(createdFiles).map(([outName, contents]) =>
+			writeFile(outName, contents),
+		),
+	);
 };
 
 /**
@@ -214,145 +214,183 @@ const compile = async ({
  * @returns {Promise<void>} A promise that resolves when the build is complete.
  */
 const build = async ({
-  format,
-  outputDirs,
-  indexFile,
-  otherFiles,
-  fileName = "index.ts",
+	format,
+	outputDirs,
+	indexFile,
+	otherFiles,
+	fileName = "index.ts",
 }: BuildOptions): Promise<void> => {
-  const tempdir = await mkdtemp("_bc");
-  const esmtempDir = `${tempdir}/esm`;
-  const cjstempDir = `${tempdir}/cjs`;
-  const bwtempDir = `${tempdir}/bw`;
-  const createTemps = async () => {
-    if (format.includes("esm")) {
-      await mkdir(esmtempDir, { recursive: true });
-    }
-    if (format.includes("cjs")) {
-      await mkdir(cjstempDir, { recursive: true });
-    }
+	const tempdir = await mkdtemp("_bc");
+	const esmtempDir = `${tempdir}/esm`;
+	const cjstempDir = `${tempdir}/cjs`;
+	const bwtempDir = `${tempdir}/bw`;
+	const createTemps = async () => {
+		if (format.includes("esm")) {
+			await mkdir(esmtempDir, { recursive: true });
+		}
+		if (format.includes("cjs")) {
+			await mkdir(cjstempDir, { recursive: true });
+		}
 
-    if (format.includes("browser")) {
-      await mkdir(bwtempDir, { recursive: true });
-    }
-  };
-
-  const createDirs = async (format: Format) => {
-    const dir = outputDirs[format];
-    if (dir) {
-      if (existsSync(dir)) {
-        cleanDir(dir);
-      } else {
-        await mkdir(dir, { recursive: true });
-      }
-    }
-  };
-  // ------------------------------------------
-  const start = performance.now();
-  // --------------------------------------------
-  $.logStep("Build Process Started .... ");
-  const tempOutFilePath = `${tempdir}/${fileName}`;
-  await mergeFiles({
-    outFilePath: tempOutFilePath,
-    indexFile,
-    otherFiles,
-  });
-  await $.sleep(500);
-  $.logStep("Creating Temp Dirs .... ");
-  await createTemps();
-  await $.sleep(1000);
-  if (format.includes("esm")) {
-    $.logStep("Compiling for ESM  .... ");
-    await (async () => {
-      await createDirs("esm");
-      await compile({
-        fileNames: [tempOutFilePath],
-        format: "esm",
-        declareDir: outputDirs.esm,
-        outDir: esmtempDir,
-        replaceFunction: extensionReplaceEsm,
-      });
-      await $.sleep(3000);
-      const fname = await readdir(esmtempDir);
-      const code = await readFile(`${esmtempDir}/${fname}`, "utf8");
-      const result = minify(code, {
-        sourceMap: true,
-        keep_fnames: true,
-      });
-      const txt = `
+		if (format.includes("browser")) {
+			await mkdir(bwtempDir, { recursive: true });
+		}
+	};
+	// ------------------------------------------
+	const start = performance.now();
+	// --------------------------------------------
+	$.logStep("Start:  .... ");
+	try {
+		const tempOutFilePath = `${tempdir}/${fileName}`;
+		await mergeFiles({
+			outFilePath: tempOutFilePath,
+			indexFile,
+			otherFiles,
+		});
+		await $.sleep(500);
+		$.logStep("Create: Temp Dirs");
+		await createTemps();
+		await $.sleep(1000);
+		$.logStep("Create: Out Dirs");
+		if (format.includes("esm") && outputDirs?.esm) {
+			if (existsSync(outputDirs.esm)) {
+				await cleanDir(outputDirs.esm);
+			} else {
+				await mkdir(outputDirs.esm, { recursive: true });
+			}
+		}
+		if (format.includes("cjs") && outputDirs?.cjs) {
+			if (existsSync(outputDirs.cjs)) {
+				await cleanDir(outputDirs.cjs);
+			} else {
+				await mkdir(outputDirs.cjs, { recursive: true });
+			}
+		}
+		if (format.includes("browser") && outputDirs?.browser) {
+			if (existsSync(outputDirs.browser)) {
+				await cleanDir(outputDirs.browser);
+			} else {
+				await mkdir(outputDirs.browser, { recursive: true });
+			}
+		}
+		await $.sleep(1000);
+		if (format.includes("esm") && !outputDirs?.esm) {
+			$.logWarn(
+				"WARNING: Output directory for esm required.Build for esm will skipped.",
+			);
+		}
+		if (format.includes("esm") && outputDirs?.esm) {
+			$.logStep("Compile: ESM");
+			await (async () => {
+				await compile({
+					fileNames: [tempOutFilePath],
+					format: "esm",
+					declaration: true,
+					declareDir: outputDirs.esm,
+					outDir: esmtempDir,
+					replaceFunction: extensionReplaceEsm,
+				});
+				await $.sleep(3000);
+				const fname = await readdir(esmtempDir);
+				const code = await readFile(`${esmtempDir}/${fname}`, "utf8");
+				const result = minify(code, {
+					sourceMap: true,
+					keep_fnames: true,
+				});
+				const txt = `
       ${result.code}
       //# sourceMappingURL=${fname}.map
       `;
-      await writeFile(`${outputDirs.esm}/${fname}`, txt.trim());
-      if (result.map) {
-        await writeFile(`${outputDirs.esm}/${fname}.map`, result.map);
-      }
-    })();
-  }
-  await $.sleep(1000);
-  if (format.includes("cjs")) {
-    $.logStep("Compiling for CJS  .... ");
-    await (async () => {
-      await createDirs("cjs");
-      await compile({
-        fileNames: [tempOutFilePath],
-        format: "cjs",
-        declareDir: outputDirs.cjs,
-        outDir: cjstempDir,
-        replaceFunction: extensionReplaceCjs,
-      });
-      const fname = await readdir(cjstempDir);
-      const code = await readFile(`${cjstempDir}/${fname}`, "utf8");
-      const result = minify(code, {
-        sourceMap: true,
-        keep_fnames: true,
-      });
-      const txt = `
+				await writeFile(`${outputDirs.esm}/${fname}`, txt.trim());
+				if (result.map) {
+					await writeFile(`${outputDirs.esm}/${fname}.map`, result.map);
+				}
+			})();
+		}
+		await $.sleep(1000);
+		if (format.includes("cjs") && !outputDirs?.cjs) {
+			$.logWarn(
+				"WARNING: Output directory for cjs required.Build for cjs will skipped.",
+			);
+		}
+		if (format.includes("cjs") && outputDirs?.cjs) {
+			$.logStep("Compile: CJS");
+			await (async () => {
+				await compile({
+					fileNames: [tempOutFilePath],
+					format: "cjs",
+					declareDir: outputDirs.cjs,
+					declaration: true,
+					outDir: cjstempDir,
+					replaceFunction: extensionReplaceCjs,
+				});
+				const fname = await readdir(cjstempDir);
+				const code = await readFile(`${cjstempDir}/${fname}`, "utf8");
+				const result = minify(code, {
+					sourceMap: true,
+					keep_fnames: true,
+				});
+				const txt = `
       ${result.code}
       //# sourceMappingURL=${fname}.map
       `;
-      await writeFile(`${outputDirs.cjs}/${fname}`, txt.trim());
-      if (result.map) {
-        await writeFile(`${outputDirs.cjs}/${fname}.map`, result.map);
-      }
-    })();
-  }
-  await $.sleep(1000);
-  if (format.includes("browser")) {
-    $.logStep("Compiling for Browser  .... ");
-    await (async () => {
-      await createDirs("browser");
-      await compile({
-        fileNames: [tempOutFilePath],
-        format: "browser",
-        outDir: bwtempDir,
-        declaration: false,
-      });
-      const fname = await readdir(bwtempDir);
-      const code = await readFile(`${bwtempDir}/${fname}`, "utf8");
-      const _lines = code.replace(/export\s+/g, "").split("\n");
-      const _code = _lines.join("\n");
-      await $.sleep(2000);
-      const result = minify(_code, {
-        sourceMap: true,
-        keep_fnames: true,
-      });
-      const txt = `
+				await writeFile(`${outputDirs.cjs}/${fname}`, txt.trim());
+				if (result.map) {
+					await writeFile(`${outputDirs.cjs}/${fname}.map`, result.map);
+				}
+			})();
+		}
+		await $.sleep(1000);
+		if (format.includes("browser") && !outputDirs?.browser) {
+			$.logWarn(
+				"WARNING: Output directory for browser required.Build for browser will skipped.",
+			);
+		}
+		if (format.includes("browser") && outputDirs?.browser) {
+			$.logStep("Compile: Browser");
+			await (async () => {
+				await compile({
+					fileNames: [tempOutFilePath],
+					format: "browser",
+					outDir: bwtempDir,
+					declaration: false,
+				});
+				const fname = await readdir(bwtempDir);
+				const code = await readFile(`${bwtempDir}/${fname}`, "utf8");
+				const _lines = code.replace(/export\s+/g, "").split("\n");
+				const _code = _lines.join("\n");
+				const result = minify(_code, {
+					sourceMap: true,
+					keep_fnames: true,
+				});
+				const txt = `
       ${result.code}
       //# sourceMappingURL=${fname}.map
       `;
-      await $.sleep(3000);
-      await writeFile(`${outputDirs.browser}/${fname}`, txt.trim());
-      if (result.map) {
-        await writeFile(`${outputDirs.browser}/${fname}.map`, result.map);
-      }
-    })();
-  }
-  $.logStep("Removing Temp Directory");
-  await $.sleep(3000);
-  await $`rm -r ${tempdir}`;
-  const end = performance.now();
-  $.logStep(`Done in ... ${end - start} ms`);
+				await writeFile(`${outputDirs.browser}/${fname}`, txt.trim());
+				if (result.map) {
+					await writeFile(`${outputDirs.browser}/${fname}.map`, result.map);
+				}
+			})();
+		}
+		$.logStep("Remove: Temp Dir");
+		await $.sleep(3000);
+		await $`rm -r ${tempdir}`;
+		const end = performance.now();
+		$.logStep(`Done: ${end - start} ms`);
+	} catch (e) {
+		$.logError((e as Error).message);
+		if (existsSync(tempdir)) await $`rm -r ${tempdir}`;
+		if (existsSync(outputDirs?.esm as string)) {
+			await $`rm -r ${outputDirs?.esm as string}`;
+		}
+		if (existsSync(outputDirs?.cjs as string)) {
+			await $`rm -r ${outputDirs?.cjs as string}`;
+		}
+		if (existsSync(outputDirs?.browser as string)) {
+			await $`rm -r ${outputDirs?.browser as string}`;
+		}
+	}
 };
 
 export { minify, compile, build };
