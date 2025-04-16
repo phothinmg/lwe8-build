@@ -333,6 +333,9 @@ export const build = async ({
         const result = minify(code, {
           sourceMap: true,
           keep_fnames: true,
+          output: {
+            beautify: true,
+          },
         });
         const txt = `
       ${result.code}
@@ -366,6 +369,9 @@ export const build = async ({
         const result = minify(_code, {
           sourceMap: true,
           keep_fnames: true,
+          output: {
+            beautify: true,
+          },
         });
         const txt = `
       ${result.code}

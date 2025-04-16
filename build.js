@@ -39,7 +39,11 @@ if (fs.existsSync(out)) {
   host.writeFile = (fileName, contents) => {
     const ext = path.extname(fileName);
     const outName = fileName;
-    const mini = minify(contents, { keep_fnames: true, sourceMap: true });
+    const mini = minify(contents, {
+      keep_fnames: true,
+      sourceMap: true,
+      output: { beautify: true },
+    });
     const _content = ext === ".js" ? mini.code : contents;
     createdFiles[outName] = _content;
     if (ext === ".js") {
@@ -50,7 +54,7 @@ if (fs.existsSync(out)) {
   program.emit();
   Object.entries(createdFiles).map(([outName, contents]) => {
     const ext = path.extname(outName);
-    const _mapc = ext === ".ts" ? "" : `//# sourceMappingURL=${outName}.map`;
+    const _mapc = ext === ".ts" ? "" : `//# sourceMappingURL=${outName}.map`.trimStart();
     const txt = `
     ${contents}
     ${_mapc}
@@ -91,7 +95,11 @@ if (fs.existsSync(out)) {
       ext === ".ts"
         ? fileName.slice(0, -3) + ".cts"
         : fileName.slice(0, -3) + ".cjs";
-    const mini = minify(contents, { keep_fnames: true, sourceMap: true });
+    const mini = minify(contents, {
+      keep_fnames: true,
+      sourceMap: true,
+      output: { beautify: true },
+    });
     const _content = ext === ".js" ? mini.code : contents;
     createdFiles[outName] = _content;
     if (ext === ".js") {
@@ -102,7 +110,8 @@ if (fs.existsSync(out)) {
   program.emit();
   Object.entries(createdFiles).map(([outName, contents]) => {
     const ext = path.extname(outName);
-    const _mapc = ext === ".ts" ? "" : `//# sourceMappingURL=${outName}.map`;
+    const _mapc =
+      ext === ".ts" ? "" : `//# sourceMappingURL=${outName}.map`.trimStart();
     const txt = `
     ${contents}
     ${_mapc}
