@@ -115,12 +115,12 @@ export const mergeFiles = async ({
   } else {
     _otherCode = "";
   }
-  const txt = `
+  return `
           ${_otherCode}
           ${_indexCode}
           `;
 
-  await writeFile(outFilePath, txt.trim());
+  //await writeFile(outFilePath, txt.trim());
 };
 // --------------------------------------------------------------------------------------- //
 //##
