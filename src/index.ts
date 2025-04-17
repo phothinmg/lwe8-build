@@ -75,25 +75,22 @@ type OtherFile = {
   removeExport?: boolean;
 };
 export type MergeFilesOptions = {
-  outFilePath: string;
   indexFile: IndexFile;
   otherFiles?: OtherFile[];
 };
 
 /**
  * Merge the given files into a single file.
- * @param outFilePath The path to the output file.
  * @param indexFile The main file to be merged.
  * @param otherFiles The other files to be merged.
  * @returns A promise that resolves when the merge is complete.
  */
 export const mergeFiles = async ({
-  outFilePath,
   indexFile,
   otherFiles,
 }: MergeFilesOptions) => {
-  const pn = dirname(outFilePath);
-  if (!existsSync(pn)) await mkdir(pn);
+  // const pn = dirname(outFilePath);
+  // if (!existsSync(pn)) await mkdir(pn);
   const index_code = await readFile(indexFile.path, "utf8");
   const _indexCode = indexFile.lines
     ? index_code.split("\n").slice(indexFile.lines).join("\n")
