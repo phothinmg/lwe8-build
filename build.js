@@ -1,7 +1,6 @@
 import ts from "typescript";
 import fs from "node:fs";
 import path from "node:path";
-import { minify } from "uglify-js";
 //-----------------------------------
 const out = "./dist";
 if (fs.existsSync(out)) {
@@ -20,6 +19,7 @@ if (fs.existsSync(out)) {
     module: ts.ModuleKind.ESNext,
     declaration: true,
     outDir: out,
+    sourceMap: true,
   };
 
   /**
@@ -39,27 +39,13 @@ if (fs.existsSync(out)) {
   host.writeFile = (fileName, contents) => {
     const ext = path.extname(fileName);
     const outName = fileName;
-    const mini = minify(contents, {
-      keep_fnames: true,
-      sourceMap: true,
-      output: { beautify: true },
-    });
-    const _content = ext === ".js" ? mini.code : contents;
-    createdFiles[outName] = _content;
-    if (ext === ".js") {
-      mapFiles[`${outName}.map`] = mini.map;
-    }
+    createdFiles[outName] = contents;
   };
   const program = ts.createProgram(["./src/index.ts"], options, host);
   program.emit();
   Object.entries(createdFiles).map(([outName, contents]) => {
     const ext = path.extname(outName);
-    const _mapc = ext === ".ts" ? "" : `//# sourceMappingURL=${outName}.map`.trimStart();
-    const txt = `
-    ${contents}
-    ${_mapc}
-   `;
-    fs.writeFileSync(outName, txt.trim());
+    fs.writeFileSync(outName, contents);
   });
   Object.entries(mapFiles).map(([outName, contents]) =>
     fs.writeFileSync(outName, contents)
@@ -73,6 +59,7 @@ if (fs.existsSync(out)) {
     module: ts.ModuleKind.CommonJS,
     declaration: true,
     outDir: out,
+    sourceMap: true,
   };
 
   /**
@@ -90,33 +77,13 @@ if (fs.existsSync(out)) {
    * @param {string} contents
    */
   host.writeFile = (fileName, contents) => {
-    const ext = path.extname(fileName);
-    const outName =
-      ext === ".ts"
-        ? fileName.slice(0, -3) + ".cts"
-        : fileName.slice(0, -3) + ".cjs";
-    const mini = minify(contents, {
-      keep_fnames: true,
-      sourceMap: true,
-      output: { beautify: true },
-    });
-    const _content = ext === ".js" ? mini.code : contents;
-    createdFiles[outName] = _content;
-    if (ext === ".js") {
-      mapFiles[`${outName}.map`] = mini.map;
-    }
+    createdFiles[fileName] = contents;
   };
   const program = ts.createProgram(["./src/index.ts"], options, host);
   program.emit();
   Object.entries(createdFiles).map(([outName, contents]) => {
-    const ext = path.extname(outName);
-    const _mapc =
-      ext === ".ts" ? "" : `//# sourceMappingURL=${outName}.map`.trimStart();
-    const txt = `
-    ${contents}
-    ${_mapc}
-   `;
-    fs.writeFileSync(outName, txt.trim());
+    outName = outName.replace(/.js/, ".cjs").replace(/.ts/, ".cts");
+    fs.writeFileSync(outName, contents);
   });
   Object.entries(mapFiles).map(([outName, contents]) =>
     fs.writeFileSync(outName, contents)
