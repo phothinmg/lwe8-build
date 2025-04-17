@@ -139,6 +139,7 @@ export type CompileOptions = {
   outDir: string;
   declaration?: boolean;
   declarationDir?: string;
+  sourceMap?: boolean;
   complierOptions?: Omit<
     ts.CompilerOptions,
     "module" | "outDir" | "declaration" | "declarationDir" | "allowJs"
@@ -164,9 +165,11 @@ export async function compile({
   declaration,
   complierOptions,
   declarationDir,
+  sourceMap,
 }: CompileOptions) {
   const debool = !declaration || format === "browser" ? false : declaration;
   const declare = declarationDir ? { declarationDir: declarationDir } : {};
+  const sm = sourceMap ? { sourceMap: sourceMap } : {};
   const options: ts.CompilerOptions = {
     allowJs: true,
     module: getModuleType(format),
@@ -175,6 +178,7 @@ export async function compile({
     jsx: ts.JsxEmit.React,
     ...complierOptions,
     ...declare,
+    ...sm,
   };
 
   const createdFiles: Record<string, string> = {};
