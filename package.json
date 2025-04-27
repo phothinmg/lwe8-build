@@ -15,19 +15,11 @@
     "build": "node build.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "Apache-2.0",
+  "author": "Pho Thin Mg <phothinmg@disroot.org>",
+  "license": "MIT",
   "dependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.13.1",
-    "@types/uglify-js": "^3.17.5",
-    "dax-sh": "^0.42.0",
-    "typescript": "^5.7.3",
-    "uglify-js": "^3.19.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@biomejs/biome"
-    ]
+    "typescript": "^5.7.3"
   }
 }

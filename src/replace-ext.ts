@@ -1,22 +1,21 @@
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { readFile } from "node:fs/promises";
-
 /**
  * Read the type field from the package.json file in the current working directory.
  * @returns "commonjs" if the type field is not present or is "commonjs", otherwise "module".
  */
-const getType = async () => {
+const getType = () => {
   const packageJsonFile = join(process.cwd(), "package.json");
-  const packageData = await readFile(packageJsonFile, "utf8");
+  const packageData = readFileSync(packageJsonFile, "utf8");
   const data = JSON.parse(packageData);
   return !data.type || data.type === "commonjs" ? "commonjs" : "module";
 };
 
-export const replaceFileExtensions = async (
+export const replaceFileExtensions = (
   fileName: string,
   format: "esm" | "cjs" | "browser"
 ) => {
-  const type = await getType();
+  const type = getType();
   switch (format) {
     case "esm":
       fileName =
