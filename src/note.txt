@@ -1,0 +1,35 @@
+// --
+// function rep(str: string) {
+//   const rex = /\".*\"/g;
+//   let wm = str.match(rex) ? str.match(rex)?.[0] : "";
+//   wm = wm?.replace(/"/g, "");
+//   return str.replace(rex, `"${wm}.js"`);
+// }
+// function jsReplace(str: string) {
+//   const _aa: string[] = [];
+//   const lines = str.split("\n");
+//   lines.map((line) => {
+//     if (
+//       line.startsWith("import") &&
+//       line
+//         .split(" ")
+//         .slice(-1)
+//         .join("")
+//         .replace(/"/g, "")
+//         .replace(/;/, "")
+//         .startsWith("./")
+//     ) {
+//       line = rep(line);
+//     }
+//     _aa.push(line);
+//   });
+//   return _aa.join("\n");
+// }
+// --
+// const isNotTs = (str: string) =>
+//   extname(str) !== ".ts" && extname(str) !== ".mts" && extname(str) !== ".cts";
+// --
+
+ // if (isNotTs(fileName)) {
+    // 	contents = jsReplace(contents);
+    // }

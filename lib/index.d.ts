@@ -1,6 +1,6 @@
 import ts from "typescript";
 import type { MergeFilesOptions } from "./merge";
-import { mergeFiles } from "./merge";
+import { mergeFiles } from "./merge.js";
 /**
  * Remove all files in the given directory.
  * @param dir The directory to clean.

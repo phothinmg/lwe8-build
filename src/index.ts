@@ -1,10 +1,10 @@
-import { join, dirname, extname } from "node:path";
-import { writeFile, readdir, unlink, mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
+import { mkdir, readdir, unlink, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import ts from "typescript";
-import { replaceFileExtensions } from "./replace-ext";
 import type { MergeFilesOptions } from "./merge";
-import { mergeFiles } from "./merge";
+import { mergeFiles } from "./merge.js";
+import { replaceFileExtensions } from "./replace-ext.js";
 
 /**
  * Remove all files in the given directory.
@@ -40,37 +40,8 @@ const getModuleType = (format: Format) => {
   }
   return moduleType;
 };
-// --
-function rep(str: string) {
-  const rex = /\".*\"/g;
-  let wm = str.match(rex) ? str.match(rex)?.[0] : "";
-  wm = wm?.replace(/"/g, "");
-  return str.replace(rex, `"${wm}.js"`);
-}
-function jsReplace(str: string) {
-  const _aa: string[] = [];
-  const lines = str.split("\n");
-  lines.map((line) => {
-    if (
-      line.startsWith("import") &&
-      line
-        .split(" ")
-        .slice(-1)
-        .join("")
-        .replace(/"/g, "")
-        .replace(/;/, "")
-        .startsWith("./")
-    ) {
-      line = rep(line);
-    }
-    _aa.push(line);
-  });
-  return _aa.join("\n");
-}
-// --
-const isNotTs = (str: string) =>
-  extname(str) !== ".ts" && extname(str) !== ".mts" && extname(str) !== ".cts";
-// --
+
+
 export async function compile({
   entry,
   format,
@@ -100,9 +71,6 @@ export async function compile({
 
   host.writeFile = (fileName: string, contents: string) => {
     fileName = replaceFileExtensions(fileName, format);
-    if (isNotTs(fileName)) {
-      contents = jsReplace(contents);
-    }
     createdFiles[fileName] = contents;
   };
   const program = ts.createProgram(fileNames, options, host);

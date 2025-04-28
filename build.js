@@ -11,5 +11,5 @@ await compile({
 await compile({
   entry: "./src/index.ts",
   format: "cjs",
-  outDir: "dist/commonjs",
+  outDir: "dist",
 });
