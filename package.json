@@ -24,5 +24,17 @@
     "@biomejs/biome": "^1.9.4",
     "@types/node": "^22.13.1",
     "typescript": "^5.7.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phothinmg/lwe8-build.git"
+  },
+  "homepage": "https://github.com/phothinmg/lwe8-build.git#readme",
+  "bugs": {
+    "url": "https://github.com/phothinmg/lwe8-build/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
