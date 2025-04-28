@@ -1,6 +1,6 @@
 {
   "name": "lwe8-build",
-  "version": "0.1.12",
+  "version": "0.2.0",
   "description": "Mini build tool",
   "type": "module",
   "exports": {
